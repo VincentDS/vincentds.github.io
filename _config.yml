@@ -1,8 +1,8 @@
 # Site settings
 title: 'Vincent De Schutter'
 description: 'Tech junkie • Security Enthousiast • Computer Science @ VUBrussels'
-url: 'http://joshgerdes.com/jekyll-uno'
-baseurl: ''
+url: 'http://vincentds.be'
+baseurl: '/'
 # google_analytics: 'UA-XXXXXX-X'
 # disqus_shortname: 'your-disqus-name'
 
