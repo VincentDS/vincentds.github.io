@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Vincent De Schutter</title>
+    <description>Tech junkie • Security Enthousiast • Computer Science @ VUBrussels</description>
+    <link>http://joshgerdes.com/jekyll-uno/jekyll-uno//</link>
+    <atom:link href="http://joshgerdes.com/jekyll-uno/jekyll-uno//feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Wed, 30 Mar 2016 22:43:43 +0200</pubDate>
+    <lastBuildDate>Wed, 30 Mar 2016 22:43:43 +0200</lastBuildDate>
+    <generator>Jekyll v3.0.2</generator>
+    
+  </channel>
+</rss>

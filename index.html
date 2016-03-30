@@ -1,65 +1,24 @@
-<!DOCTYPE HTML>
-<!--
-	Aerial by HTML5 UP
-	html5up.net | @n33co
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
-<html>
-	<head>
-		<title>Vincent De Schutter</title>
-		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		<meta name="description" content="" />
-		<meta name="keywords" content="" />
+---
+layout: default
+---
 
-		<script src="js/skel.min.js"></script>
-		<script src="js/init.js"></script>
-		<noscript>
-			<link rel="stylesheet" href="css/skel.css" />
-			<link rel="stylesheet" href="css/style.css" />
-			<link rel="stylesheet" href="css/style-wide.css" />
-			<link rel="stylesheet" href="css/style-noscript.css" />
-		</noscript>
+<div class="main-post-list">
 
-	</head>
-	<body class="loading">
-		<div id="wrapper">
-			<div id="bg"></div>
-			<div id="overlay"></div>
-			<div id="main">
+  <ol class="post-list">
+    {% for post in paginator.posts %}
+      <li>
+        <h2 class="post-list__post-title post-title"><a href="{{ site.baseurl }}{{ post.url | remove_first: '/' }}" title="{{ post.title }}">{{ post.title }}</a></h2>
+        <p class="excerpt">{{ post.excerpt | remove: '<p>' | remove: '</p>' }}&hellip;</p>
+        <div class="post-list__meta"><time datetime="{{ post.date | date: "%-d %b %Y" }}" class="post-list__meta--date date">{{ post.date | date: "%-d %b %Y" }}</time> &#8226; <span class="post-meta__tags">on {% for tag in post.tags %}<a href="{{ site.baseurl }}tags/#{{ tag }}">{{ tag }}</a> {% endfor %}</span></div>
+        <hr class="post-list__divider">
+      </li>
+    {% endfor %}
+  </ol>
 
-				<!-- Header -->
-					<header id="header">
-						<span>
-							<img src="https://secure.gravatar.com/avatar/dee9e317a455d6d645cf6f3abc5cde52.jpg?s=192" alt="My Photo">
-						</span>
-						<h1>Vincent De Schutter</h1>
-						<p>Tech junkie &nbsp;&bull;&nbsp; Student @ VUBrussels &nbsp;&bull;&nbsp; Computer Science &nbsp;&bull;&nbsp; Sports &nbsp;&bull;&nbsp; Music</p>
-						<nav>
-							<ul>
-								<li><a href="https://twitter.com/vdeschutter" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
-								<li><a href="https://www.facebook.com/vincent.deschutter" class="icon fa-facebook"><span class="label">Facebook</span></a></li>
-								<li><a href="https://github.com/VincentDS" class="icon fa-github"><span class="label">Github</span></a></li>
-								<li><a href="https://www.linkedin.com/profile/view?id=378160038&trk=spm_pic" class="icon fa-linkedin"><span class="label">Linkedin</span></a></li>
-								<li><a href="http://www.last.fm/user/DeVinnie" class="icon fa-lastfm"><span class="label">Last.fm</span></a></li>
-								<li><a href="mailto:vincent.deschutter@skynet.be" class="icon fa-envelope-o"><span class="label">Email</span></a></li>
-							</ul>
-						</nav>
-					</header>
+  <hr class="post-list__divider ">
 
-			</div>
-		</div>
+  {% if paginator.previous_page or paginator.next_page %}
+      {% include pagination.html %}
+  {% endif %}
 
-		<script>
-  		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
- 			 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
- 			  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  			  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
- 		 ga('create', 'UA-51543309-1', 'vincentdeschutter.com');
- 		 ga('require', 'displayfeatures');
-  		 ga('send', 'pageview');
-
-		</script>
-
-	</body>
-</html>
+</div>
