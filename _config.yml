@@ -3,7 +3,7 @@ title: 'Vincent De Schutter'
 description: 'Tech junkie • Security enthousiast • Computer Science @ VUBrussels'
 url: 'http://vincentds.be'
 baseurl: '/'
-# google_analytics: 'UA-XXXXXX-X'
+google_analytics: 'UA-51543309-1'
 # disqus_shortname: 'your-disqus-name'
 
 author:
