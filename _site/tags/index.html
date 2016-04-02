@@ -43,7 +43,7 @@
   <meta name="theme-color" content="#ffffff">
 
   <link rel="stylesheet" href="/css/main.css">
-  <link rel="canonical" href="http://vincentds.be//tags/">
+  <link rel="canonical" href="http://localhost:4000//tags/">
   <link rel="alternate" type="application/rss+xml" title="Vincent De Schutter" href="/feed.xml">
 </head>
 
@@ -154,10 +154,54 @@
       <div class="content-wrapper__inner">
         <h2>Tags:</h2>
 <div class="tags"> 
+ 
+  <a href="#jekyll">jekyll</a>
+ 
+  <a href="#xss">xss</a>
 
 </div>
 
 <!-- iterate through all tags on the site --> 
+ 
+  <!-- for each tag, create an anchor by using the tag name as an id --> 
+  <div id="jekyll">  
+    <h3> jekyll </h3>  <!-- for create a heading --> 
+
+    <ul> <!-- create the list of posts -->
+      <!-- iterate through all the posts on the site --> 
+       
+        <!-- list only those which contain the current tag --> 
+        
+       
+        <!-- list only those which contain the current tag --> 
+         
+            <li>
+              <a href="/welcome-to-jekyll/">Welcome to Jekyll!</a>
+            </li>
+        
+      
+    </ul>
+  </div>
+ 
+  <!-- for each tag, create an anchor by using the tag name as an id --> 
+  <div id="xss">  
+    <h3> xss </h3>  <!-- for create a heading --> 
+
+    <ul> <!-- create the list of posts -->
+      <!-- iterate through all the posts on the site --> 
+       
+        <!-- list only those which contain the current tag --> 
+         
+            <li>
+              <a href="/first-xss/">(First) Reflected XSS</a>
+            </li>
+        
+       
+        <!-- list only those which contain the current tag --> 
+        
+      
+    </ul>
+  </div>
 
       </div>
 

