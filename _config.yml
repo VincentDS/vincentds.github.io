@@ -1,8 +1,8 @@
 # Site settings
 title: 'Vincent De Schutter'
 description: 'Tech junkie • Security enthousiast • Computer Science @ VUBrussels'
-#url: 'http://vincentds.be' 
-url: 'http://localhost:4000'
+url: 'http://vincentds.be' 
+#url: 'http://localhost:4000'
 baseurl: '/'
 google_analytics: 'UA-51543309-1'
 disqus_shortname: 'vincentdsblog'
