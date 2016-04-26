@@ -1,6 +1,6 @@
 # Site settings
 title: 'Vincent De Schutter'
-description: 'Tech junkie • Security enthousiast • Computer Science @ VUBrussels'
+description: 'Tech junkie • Security enthusiast • Computer Science @ VUBrussels'
 url: 'http://vincentds.be' 
 #url: 'http://localhost:4000'
 baseurl: '/'
