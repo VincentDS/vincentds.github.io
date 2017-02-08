@@ -1,6 +1,7 @@
 # Site settings
 title: 'Vincent De Schutter'
-description: 'Tech junkie • Security enthusiast • Computer Science @ VUBrussels'
+description: 'Tech junkie • Security enthusiast • Computer Science @VUBrussels & @ETHZurich'
+hackerone: 'https://hackerone.com/vincentds'
 url: 'http://vincentds.be' 
 #url: 'http://localhost:4000'
 baseurl: '/'
