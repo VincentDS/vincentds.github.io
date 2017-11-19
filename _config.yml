@@ -6,7 +6,7 @@ hackerone: 'hackerone.com/vincentds'
 bugcrowd: 'bugcrowd.com/VincentDS'
 url: 'http://vincentds.be'
 #url: 'http://localhost:4000'
-baseurl: '/'
+baseurl: ''
 google_analytics: 'UA-51543309-1'
 disqus_shortname: 'vincentdsblog'
 
